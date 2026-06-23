@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { embed, generate, GEMINI_CHAT_MODEL } from "@/lib/gemini";
+import { embed, generate, getLlmConfig } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -84,6 +84,7 @@ Answer with inline [n] citations:`;
     }));
 
     const latency = Date.now() - started;
+    const { chat_model } = await getLlmConfig();
 
     // Log async — don't block the response
     sb.from("chat_logs")
@@ -92,7 +93,7 @@ Answer with inline [n] citations:`;
         question,
         answer,
         citations,
-        model: GEMINI_CHAT_MODEL,
+        model: chat_model,
         latency_ms: latency,
       })
       .then(({ error }) => {
@@ -103,7 +104,7 @@ Answer with inline [n] citations:`;
       answer,
       citations,
       latency_ms: latency,
-      model: GEMINI_CHAT_MODEL,
+      model: chat_model,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

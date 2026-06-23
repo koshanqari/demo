@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { extractPdfPages } from "@/lib/pdf";
 import { chunkText } from "@/lib/chunk";
-import { embed, GEMINI_EMBED_MODEL } from "@/lib/gemini";
+import { embed, getLlmConfig } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         storage_path: storagePath,
         page_count: pages.length,
         chunk_count: chunks.length,
-        embed_model: GEMINI_EMBED_MODEL,
+        embed_model: (await getLlmConfig()).embed_model,
         status: "ready",
       })
       .select()

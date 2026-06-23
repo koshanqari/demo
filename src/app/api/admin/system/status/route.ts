@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { embed, GEMINI_CHAT_MODEL, GEMINI_EMBED_MODEL } from "@/lib/gemini";
+import { embed, getLlmConfig } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -19,6 +19,7 @@ interface DbCheck extends CheckResult {
 interface GeminiCheck extends CheckResult {
   chat_model: string;
   embed_model: string;
+  source: "db" | "env" | "mixed";
 }
 
 interface StorageCheck extends CheckResult {
@@ -58,22 +59,25 @@ async function checkDb(): Promise<DbCheck> {
 
 async function checkGemini(): Promise<GeminiCheck> {
   const t0 = Date.now();
+  const cfg = await getLlmConfig();
   try {
     const [vec] = await embed(["ping"]);
     if (!vec?.length) throw new Error("empty embedding");
     return {
       ok: true,
       ms: Date.now() - t0,
-      chat_model: GEMINI_CHAT_MODEL,
-      embed_model: GEMINI_EMBED_MODEL,
+      chat_model: cfg.chat_model,
+      embed_model: cfg.embed_model,
+      source: cfg.source,
     };
   } catch (e) {
     return {
       ok: false,
       ms: Date.now() - t0,
       error: e instanceof Error ? e.message : "unknown",
-      chat_model: GEMINI_CHAT_MODEL,
-      embed_model: GEMINI_EMBED_MODEL,
+      chat_model: cfg.chat_model,
+      embed_model: cfg.embed_model,
+      source: cfg.source,
     };
   }
 }

@@ -63,10 +63,7 @@ export function SummaryPanel({ days }: { days: number }) {
         {TONES.map((t) => (
           <button
             key={t.value}
-            onClick={() => {
-              setTone(t.value);
-              generate(t.value);
-            }}
+            onClick={() => setTone(t.value)}
             disabled={busy}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition",

@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Database,
+  Key,
   Loader2,
   RefreshCcw,
   Sparkles,
@@ -14,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LlmConfigCard } from "@/components/admin/LlmConfigCard";
 
 interface StatusResp {
   checked_at: string;
@@ -204,6 +206,12 @@ export default function SystemPage() {
             />
           </div>
         )}
+      </section>
+
+      {/* Gemini config */}
+      <section className="mt-8">
+        <SectionTitle icon={<Key className="h-4 w-4" />}>Gemini</SectionTitle>
+        <LlmConfigCard onSaved={refresh} />
       </section>
 
       {/* Seed */}
