@@ -1,6 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# ---------- dependencies ----------
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +10,61 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# ---------- testing & coverage ----------
 /coverage
+*.lcov
 
-# next.js
+# ---------- next.js build output ----------
 /.next/
 /out/
-
-# production
 /build
+/dist
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
+# ---------- vercel ----------
+.vercel
 
-# debug
+# ---------- env (never commit secrets) ----------
+.env
+.env.*
+.env.*.local
+# Keep the template
+!.env.example
+
+# ---------- logs ----------
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ---------- OS junk ----------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# vercel
-.vercel
+# ---------- editors / IDE ----------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ---------- misc ----------
+*.pem
+*.key
+*.crt
+.cache/
+.turbo/
+tmp/
+.temp/
+
+# ---------- local agent / tool state ----------
+.claude/
+.cursor/

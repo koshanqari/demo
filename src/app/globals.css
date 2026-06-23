@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #18181b;
 }
 
 @theme inline {
@@ -10,17 +10,76 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Concentrix Aqua — tonal scale. 500 is the canonical brand value. */
+  --color-brand-50: #e6faf9;
+  --color-brand-100: #c2f2ef;
+  --color-brand-200: #8ae7e2;
+  --color-brand-300: #4dd8d2;
+  --color-brand-400: #1fc6bf;
+  --color-brand-500: #00bbb4;
+  --color-brand-600: #00a29d;
+  --color-brand-700: #00827f;
+  --color-brand-800: #006866;
+  --color-brand-900: #00504e;
+  --color-brand-950: #002e2c;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b;
+    --foreground: #fafafa;
   }
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS form input zoom prevention — keep ≥16px on touch devices */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Respect iOS safe area */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Sweeping shine for CTA buttons */
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(120%); }
+}
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 2.6s ease-in-out infinite;
+}
+
+/* Soft pulsing halo for attention CTAs */
+@keyframes brand-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 187, 180, 0.45), 0 8px 24px -8px rgba(0, 187, 180, 0.55); }
+  50%      { box-shadow: 0 0 0 8px rgba(0, 187, 180, 0), 0 8px 24px -8px rgba(0, 187, 180, 0.35); }
+}
+.animate-brand-pulse {
+  animation: brand-pulse 2.4s ease-in-out infinite;
+}
+
+/* Tighter prose for chat bubbles */
+.prose :where(p):not(:where([class~="not-prose"] *)) {
+  margin-block: 0.35em;
+}
+.prose :where(ul, ol):not(:where([class~="not-prose"] *)) {
+  margin-block: 0.4em;
+  padding-inline-start: 1.25em;
+}
+.prose :where(code):not(:where([class~="not-prose"] *)) {
+  word-break: break-word;
 }
