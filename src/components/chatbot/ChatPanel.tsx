@@ -28,6 +28,7 @@ interface Msg {
   content: string;
   citations?: Citation[];
   latency?: number;
+  model?: string;
 }
 
 export function ChatPanel({
@@ -41,11 +42,19 @@ export function ChatPanel({
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [activeModel, setActiveModel] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    fetch("/api/admin/settings/llm")
+      .then((r) => r.json())
+      .then((d) => setActiveModel(d?.active?.chat_model ?? ""))
+      .catch(() => {});
+  }, []);
 
   async function send() {
     const q = input.trim();
@@ -68,6 +77,7 @@ export function ChatPanel({
           content: data.answer,
           citations: data.citations,
           latency: data.latency_ms,
+          model: data.model,
         },
       ]);
     } catch (e) {
@@ -131,30 +141,41 @@ export function ChatPanel({
       </div>
 
       <form
-        className="flex gap-2 border-t border-zinc-200 p-2.5 pb-safe sm:p-3 dark:border-zinc-800"
+        className="flex flex-col gap-1.5 border-t border-zinc-200 p-2.5 pb-safe sm:p-3 dark:border-zinc-800"
         onSubmit={(e) => {
           e.preventDefault();
           send();
         }}
       >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={documents.length ? "Ask a question…" : "Upload a PDF first"}
-          disabled={busy || documents.length === 0}
-          enterKeyHint="send"
-          autoComplete="off"
-          className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 disabled:opacity-50 sm:text-sm dark:border-zinc-700 dark:bg-zinc-800"
-        />
-        <button
-          type="submit"
-          disabled={busy || !input.trim()}
-          aria-label="Send"
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 sm:px-4"
-        >
-          <Send className="h-4 w-4" />
-          <span className="hidden sm:inline">Send</span>
-        </button>
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={documents.length ? "Ask a question…" : "Upload a PDF first"}
+            disabled={busy || documents.length === 0}
+            enterKeyHint="send"
+            autoComplete="off"
+            className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 disabled:opacity-50 sm:text-sm dark:border-zinc-700 dark:bg-zinc-800"
+          />
+          <button
+            type="submit"
+            disabled={busy || !input.trim()}
+            aria-label="Send"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 sm:px-4"
+          >
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">Send</span>
+          </button>
+        </div>
+        {activeModel && (
+          <p
+            title="Active Gemini model — change in Admin → System"
+            className="text-right text-[10px] text-zinc-500"
+          >
+            Replying with{" "}
+            <span className="font-mono text-zinc-600 dark:text-zinc-300">{activeModel}</span>
+          </p>
+        )}
       </form>
     </div>
   );
@@ -198,8 +219,15 @@ function MessageBubble({ msg }: { msg: Msg }) {
             </ul>
           </div>
         )}
-        {msg.latency !== undefined && (
-          <div className="mt-1.5 text-[10px] text-zinc-400">{msg.latency} ms</div>
+        {(msg.latency !== undefined || msg.model) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-400">
+            {msg.model && (
+              <span className="rounded bg-zinc-200/60 px-1.5 py-0.5 font-mono text-zinc-600 dark:bg-zinc-700/60 dark:text-zinc-300">
+                {msg.model}
+              </span>
+            )}
+            {msg.latency !== undefined && <span>· {msg.latency} ms</span>}
+          </div>
         )}
       </div>
     </div>

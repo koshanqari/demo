@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Loader2, RefreshCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -17,8 +17,17 @@ const TONES: { value: Tone; label: string; hint: string }[] = [
 export function SummaryPanel({ days }: { days: number }) {
   const [tone, setTone] = useState<Tone>("executive");
   const [summary, setSummary] = useState<string>("");
+  const [model, setModel] = useState<string>("");
+  const [activeModel, setActiveModel] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/settings/llm")
+      .then((r) => r.json())
+      .then((d) => setActiveModel(d?.active?.chat_model ?? ""))
+      .catch(() => {});
+  }, []);
 
   async function generate(t: Tone = tone) {
     setBusy(true);
@@ -32,6 +41,7 @@ export function SummaryPanel({ days }: { days: number }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to generate");
       setSummary(data.summary);
+      setModel(data.model ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -47,6 +57,11 @@ export function SummaryPanel({ days }: { days: number }) {
             <Sparkles className="h-4 w-4" />
           </span>
           <h2 className="text-sm font-semibold sm:text-base">AI performance summary</h2>
+          {summary && model && (
+            <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+              {model}
+            </span>
+          )}
         </div>
         {summary && (
           <button
@@ -97,7 +112,7 @@ export function SummaryPanel({ days }: { days: number }) {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-3 py-4 text-center sm:py-6">
+          <div className="flex flex-col items-center justify-center gap-2 py-4 text-center sm:py-6">
             <button
               onClick={() => generate()}
               className="animate-brand-pulse group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 sm:text-base"
@@ -109,7 +124,18 @@ export function SummaryPanel({ days }: { days: number }) {
               <Sparkles className="relative h-4 w-4 sm:h-5 sm:w-5" />
               <span className="relative">Generate AI summary</span>
             </button>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+            {activeModel && (
+              <p
+                title="Active Gemini model — change in Admin → System"
+                className="text-[10px] text-zinc-500"
+              >
+                via{" "}
+                <span className="font-mono text-zinc-600 dark:text-zinc-300">
+                  {activeModel}
+                </span>
+              </p>
+            )}
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
               Gemini will read the last {days} days of campaigns and write a plain-English
               summary in your selected tone.
             </p>

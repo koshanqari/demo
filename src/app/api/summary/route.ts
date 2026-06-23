@@ -6,7 +6,7 @@ import {
   buildTrend,
   type Campaign,
 } from "@/lib/analytics";
-import { generate } from "@/lib/gemini";
+import { generate, getLlmConfig } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -111,7 +111,8 @@ Rules:
 ${JSON.stringify(context, null, 2)}`;
 
     const summary = await generate(prompt, system);
-    return NextResponse.json({ summary, tone, kpis });
+    const { chat_model } = await getLlmConfig();
+    return NextResponse.json({ summary, tone, kpis, model: chat_model });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[summary]", e);
