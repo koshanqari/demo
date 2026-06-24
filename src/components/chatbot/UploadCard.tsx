@@ -21,9 +21,28 @@ export function UploadCard({ onUploaded }: Props) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: fd,
+        cache: "no-store",
+      });
+
+      // Don't crash if the server (or a CDN) returns HTML instead of JSON.
+      const text = await res.text();
+      let data: { title?: string; pages?: number; chunks?: number; error?: string } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {
+          error:
+            res.status >= 500
+              ? `Server returned ${res.status} (non-JSON). It may be a cached error from Vercel — wait a minute and retry.`
+              : `Unexpected response (${res.status})`,
+        };
+      }
+
+      if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+
       setStatus(
         `✓ "${data.title}" — ${data.pages} pages, ${data.chunks} chunks indexed.`,
       );
